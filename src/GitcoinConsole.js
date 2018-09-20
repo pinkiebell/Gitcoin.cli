@@ -26,6 +26,10 @@ class GitcoinConsole extends Console {
   fetchBlockInfo() {
     Scheduler.dispatch(this.fetchBlockInfo, 30000, [this]);
 
+    if (!this.env.network) {
+      return;
+    }
+
     const self = this;
 
     StandardBountyContract.getWeb3ForNetwork(this.env.network).eth.getBlockNumber(
