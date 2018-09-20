@@ -94,9 +94,11 @@ class Console extends BasicElement {
   }
 
   onChar(str) {
-    const rowLength = this.lastRow.children.length;
+    let rowLength = this.lastRow.children.length;
     let col = document.createElement('col');
+
     col.className = 'cursor';
+
     this.lastCol.className = '';
     this.col++;
 
@@ -108,6 +110,8 @@ class Console extends BasicElement {
       this.col = 0;
       this.scrollDelta++;
       this.lastRow = newRow
+
+      rowLength = 0;
 
       if (this.autoScroll) {
         this.resetScroll();
@@ -206,7 +210,12 @@ class Console extends BasicElement {
     let len = childs.length;
 
     if (upwards) {
-      if (len < this.rows || scrollDelta > (len - this.rows)) {
+      if (len < this.rows) {
+        this.autoScroll = true;
+        return;
+      }
+
+      if (scrollDelta > (len - this.rows)) {
         return;
       }
 
