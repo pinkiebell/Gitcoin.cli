@@ -6,6 +6,12 @@ A (web)app command line interface to interact with the Standard Bounties Contrac
 
 Clone the repo with `git clone --recursive https://github.com/pinkiebell/Gitcoin.cli.git`
 
+## Additional Setup
+Because the Gitcoin.cli also fetches public information from Github, you should setup an [Personal Access Token](https://github.com/settings/tokens).
+You do not need special permissions - Public Access is enough.
 
-TODO: everything
+Inside the Gitcoin.cli, enter:
+```
+env githubToken=YOUR_TOKEN
+```
 
