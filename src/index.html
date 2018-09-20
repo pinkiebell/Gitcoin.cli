@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no'>
+    <link rel='manifest' href='manifest.webmanifest'>
+    <link rel='stylesheet' type='text/css' href='assets/style.css'>
+    <link rel='icon' type='image/png' href='assets/logo.png'>
+    <link rel='apple-touch-icon' href='assets/apple-touch-icon.png'>
+    <meta name='mobile-web-app-capable' content='yes'>
+    <meta name='apple-mobile-web-app-capable' content='yes'>
+    <script type='text/javascript'>
+      var queue = [];
+      function onload() {
+        var e = queue.shift();
+        if (e) {
+          document.head.appendChild(e);
+        }
+      }
+      function require(path) {
+        var e = document.createElement('script');
+        e.src = path;
+        e.onload = onload;
+        if (queue.length === 0) {
+          window.setTimeout(function() {
+            onload();
+          }, 1);
+        }
+        queue.push(e);
+      }
+    </script>
+    <script type='text/javascript' src='index.js'></script>
+    <title>Gitcoin.cli</title>
+  </head>
+  <body>
+  </body>
+</html>

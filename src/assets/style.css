@@ -1,0 +1,83 @@
+@font-face {
+  font-family: 'Klartext Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Klartext Mono'), url(KlartextMono-Light-webfont.woff2) format('woff2');
+}
+
+html,
+body {
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  color: rgb(164, 204, 255);
+  font-family: 'Klartext Mono';
+  font-weight: 400;
+  font-size: 18px;
+  overflow: hidden;
+  background-color: rgb(41, 51, 61);
+  -webkit-font-smoothing: subpixel-antialiased;
+  font-smoothing: subpixel-antialiased;
+  -webkit-tap-highlight-color: none;
+  -webkit-text-stroke: 0.7px;
+  tap-highlight-color: none;
+  transform: translateZ(0);
+}
+
+div, button, input {
+  display: block;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  white-space: pre;
+  border: none;
+  overflow: hidden;
+  font-family: 'Klartext Mono';
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.abs {
+  position: absolute;
+}
+
+console {
+  display: block;
+  overflow: hidden;
+}
+
+@keyframes opacity {
+  from {
+    opacity: 0.0;
+  }
+  to {
+    opacity: 1.0;
+  }
+}
+
+row {
+  display: block;
+  left: 0;
+  right: 0;
+  height: 1.3em;
+  overflow: hidden;
+  animation: opacity 0.3s ease-in;
+}
+
+col {
+  display: inline-block;
+  width: 0.53em;
+  height: 1em;
+  line-height: 1em;
+  vertical-align: bottom;
+}
+
+col.cursor {
+  background-color: red;
+}
