@@ -34,7 +34,7 @@ class BountyModel {
     tmp = [];
     let i = -1;
 
-    while (i++ < start) {
+    while (++i < start) {
       tmp.push(this.load(i, network));
     }
 

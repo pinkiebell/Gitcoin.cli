@@ -40,9 +40,12 @@ class ProfileCommand {
     }
 
     this.askedFor = args[0].toLowerCase();
-    this.funded = 0;
-    this.submitted = 0;
-    this.accepted = 0;
+
+    this.accepted = [];
+    this.submitted = [];
+    this.started = [];
+    this.other = [];
+    this.funded = [];
 
     BountyModel.loadAll(-1, console.network, this.onBounty, this);
   }
@@ -56,9 +59,8 @@ class ProfileCommand {
     let tmp = false;
 
     if (handle && handle.toLowerCase().indexOf(this.askedFor) !== -1) {
-      this.funded++;
       tmp = true;
-      this.console.writeLine(handle + '(funder):' + bountyModel.shortDescription);
+      this.funded.push(handle + '(funder):' + bountyModel.shortDescription);
     }
 
     const fmnts = bountyModel.fulfillments || [];
@@ -96,14 +98,12 @@ class ProfileCommand {
       }
     }
 
-    if (submitted) {
-      this.console.writeLine(username + '(worker):' + bountyModel.shortDescription);
-      tmp = true;
-      this.submitted++;
-    }
-
     if (accepted) {
-      this.accepted++;
+      tmp = true;
+      this.accepted.push(username + '(worker):' + bountyModel.shortDescription);
+    } else if (submitted) {
+      tmp = true;
+      this.submitted.push(username + '(worker):' + bountyModel.shortDescription);
     }
 
     if (!tmp) {
@@ -111,6 +111,7 @@ class ProfileCommand {
         let len = bountyModel.githubTimeline.length;
         let isMatch = false;
         let hasPR = false;
+        let hasStartedWork = false;
 
         while (len--) {
           const comment = bountyModel.githubTimeline[len];
@@ -122,20 +123,61 @@ class ProfileCommand {
           if (user && user.login.toLowerCase().indexOf(this.askedFor) !== -1) {
             isMatch = true;
           }
+
+          if (comment.event !== 'commented' || !user) {
+            continue;
+          }
+
+          if (user.login === 'gitcoinbot') {
+            if (comment.body.indexOf('**Started**') !== -1 &&
+                comment.body.toLowerCase().indexOf(this.askedFor) !== -1) {
+
+              hasStartedWork = true;
+            }
+          }
         }
 
-        if (isMatch) {
-          this.console.writeLine('(github reference' + (hasPR ? '/w/PR' : '') + '):' + bountyModel.shortDescription);
+        if (hasStartedWork) {
+          this.started.push(username + '(worker):' + bountyModel.shortDescription);
+        } else if (isMatch) {
+          this.other.push('(github reference' + (hasPR ? '/w/PR' : '') + '):' + bountyModel.shortDescription);
         }
       }
     }
 
     if (queryDone) {
-      this.console.writeLine(
-        this.funded + ' funded, ' +
-        this.submitted + '/' + this.accepted + ' submitted/accepted'
-      );
+      this.console.clearLine();
+
+      this.console.writeLine('\nOther Bounties with GitHub References (' + this.other.length + ')');
+      while (this.other.length) {
+        this.console.writeLine('    ' + this.other.pop());
+      }
+
+      this.console.writeLine('\nAccepted Bounties (' + this.accepted.length + ')');
+      while (this.accepted.length) {
+        this.console.writeLine('    ' + this.accepted.pop());
+      }
+
+      this.console.writeLine('\nSubmitted Bounties (' + this.submitted.length + ')');
+      while (this.submitted.length) {
+        this.console.writeLine('    ' + this.submitted.pop());
+      }
+
+      this.console.writeLine('\nStarted Bounties (' + this.started.length + ')');
+      while (this.started.length) {
+        this.console.writeLine('    ' + this.started.pop());
+      }
+
+      this.console.writeLine('\nFunded Bounties (' + this.funded.length + ')');
+      while (this.funded.length) {
+        this.console.writeLine('    ' + this.funded.pop());
+      }
+
+      return;
     }
+
+    this.console.clearLine();
+    this.console.write('searching ' + bountyModel.id);
   }
 }
 ProfileCommand.DESCRIPTION = '<github username>\n\tprint information about the github user';
