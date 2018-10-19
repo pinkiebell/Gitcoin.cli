@@ -35,7 +35,14 @@ class Github {
                 self.fetchTimeline(issueUrl, callback, scope, ETag, page + 1, results);
                 return;
               }
-              callback.call(scope, results, response.status, response.headers.get('ETag'), page);
+
+              callback.call(
+                scope,
+                results,
+                response.status,
+                response.headers.get('ETag'),
+                (page > 1 ? page - 1 : page)
+              );
             }
           );
           return;
