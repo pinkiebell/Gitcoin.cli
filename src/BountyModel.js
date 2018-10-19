@@ -268,10 +268,11 @@ class BountyModel {
   onFetchComments(res, status, ETag, page) {
     if (res && res.length) {
       this.githubTimeline = res;
-      this.githubCommentsETag = ETag;
-      this.githubPagination = page;
-      this.save();
     }
+
+    this.githubCommentsETag = ETag;
+    this.githubPagination = page;
+    this.save();
   }
 
   get gitcoinbotStatus() {
