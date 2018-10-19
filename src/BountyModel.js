@@ -261,7 +261,7 @@ class BountyModel {
       this.githubBlockNumber = blockNumber;
 
       Github.fetchTimeline(this.url, this.onFetchComments, this,
-        this.githubCommentsETag, this.githubPagination);
+        this.githubCommentsETag);//, this.githubPagination);
     }
   }
 
