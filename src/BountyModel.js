@@ -396,7 +396,7 @@ class BountyModel {
   }
 
   get issuerAddress() {
-    return this._issuer.address;
+    return this.issuer;
   }
 
   get issuerUsername() {
