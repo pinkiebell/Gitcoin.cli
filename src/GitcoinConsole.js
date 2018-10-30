@@ -7,15 +7,10 @@ class GitcoinConsole extends Console {
 
     const self = this;
 
-    if (typeof web3 === 'undefined') {
-      window.addEventListener('message', function(evt) {
-        var data = evt.data;
-        if (data && data.type === 'ETHEREUM_PROVIDER_SUCCESS') {
-          self.walletProvider = ethereum;
-        }
-      }, false);
-      window.postMessage({ type: 'ETHEREUM_PROVIDER_REQUEST' }, '*');
-    } else {
+    if (window.ethereum) {
+      this.walletProvider = window.ethereum;
+      window.ethereum.enable();
+    } else if (typeof web3 !== 'undefined') {
       this.walletProvider = web3.currentProvider;
     }
 
