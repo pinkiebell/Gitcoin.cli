@@ -461,6 +461,37 @@ class DanglingCommand {
 }
 DanglingCommand.DESCRIPTION = 'print dangling bounties';
 
+class FunderCommand {
+  constructor(cmd, args, console) {
+    this.console = console;
+
+    if (!args[0]) {
+      this.console.writeLine(this.constructor.DESCRIPTION);
+      return;
+    }
+
+    this.searchFor = args[0].toLowerCase();
+
+    BountyModel.loadAll(-1, console.network, this.onBounty, this);
+  }
+
+  onBounty(bountyModel, queryDone) {
+    if (!bountyModel) {
+      return;
+    }
+
+    this.console.clearLine();
+    this.console.write('checking ' + bountyModel.id);
+
+    const issuer = bountyModel.issuerAddress;
+
+    if (issuer && issuer.toLowerCase().indexOf(this.searchFor) !== -1) {
+      this.console.clearLine();
+      this.console.writeLine(bountyModel.shortDescription);
+    }
+  }
+}
+FunderCommand.DESCRIPTION = '<addr>\n\tsearch for bounties funded by this address';
 
 const ConsoleCommands =
   {
@@ -483,5 +514,6 @@ const ConsoleCommands =
     'tts': TextToSpeechCommand,
     'eval': EvalCommand,
     'dangling': DanglingCommand,
+    'funder': FunderCommand,
     'help': HelpCommand
   };
