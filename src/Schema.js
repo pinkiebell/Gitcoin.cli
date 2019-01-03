@@ -117,6 +117,10 @@ class FulfillmentSchema {
     this['payload']['description'] = val;
   }
 
+  set githubPRLink(val) {
+    this['payload']['fulfiller']['githubPRLink'] = val;
+  }
+
   set githubUsername(val) {
     this['payload']['fulfiller']['githubUsername'] = val;
   }

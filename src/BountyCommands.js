@@ -312,7 +312,7 @@ class FulfillBountyCommand {
     this.bountyModel = bountyModel;
     this.addrs = [];
     this.schema = new FulfillmentSchema();
-    this.fields = ['description', 'githubUsername'];
+    this.fields = ['githubPRLink', 'githubUsername'];
 
     this.setCurrentField(this.console);
   }
