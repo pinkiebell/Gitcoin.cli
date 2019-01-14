@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <script type='text/javascript'>
+      if (!window.ethereum) {
+        document.write('No Ethereum provider detected');
+      }
+
+      window.ethereum.enable();
+      setInterval(
+        function() {
+          fetch('/get').then(
+            function(response) {
+              response.json().then(
+                function(obj) {
+                  if (obj.method) {
+                    window.ethereum.sendAsync(obj,
+                      function(err, res) {
+                        console.log(err, res);
+                        if (res) {
+                          const opts = { 'method': 'POST', 'body': JSON.stringify(res) };
+
+                          fetch('/post', opts).then(
+                            function(res) {
+                            }
+                          );
+                        }
+                      }
+                    );
+                  }
+                }
+              );
+            }
+          );
+        },
+        100
+      );
+    </script>
+    <title>Gitcoin.cli Bridge</title>
+  </head>
+  <body>
+    <noscript>No script? :)</noscript>
+  </body>
+</html>

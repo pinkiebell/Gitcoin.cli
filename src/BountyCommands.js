@@ -16,6 +16,7 @@ class BountyCommand {
   }
 }
 BountyCommand.DESCRIPTION = '<bounty number>';
+this.BountyCommand = BountyCommand;
 
 
 class BountyDataCommand {
@@ -24,6 +25,7 @@ class BountyDataCommand {
   }
 }
 BountyDataCommand.DESCRIPTION = '<bounty number>\n\tdump bounty data to console';
+this.BountyDataCommand = BountyDataCommand;
 
 
 class FundBountyCommand {
@@ -43,7 +45,7 @@ class FundBountyCommand {
 
     const self = this;
 
-    console.web3Wallet.eth.getAccounts().then(
+    console.web3Wallet.listAccounts().then(
       function(res) {
         if (!res || !res.length) {
           console.writeLine('No accounts. Did you unlock your wallet?\nHit Enter to try again.');
@@ -52,10 +54,10 @@ class FundBountyCommand {
 
         while (res.length) {
           let addr = res.pop();
-          console.web3Wallet.eth.getBalance(addr).then(
+          console.web3Wallet.getBalance(addr).then(
             function(balance) {
               let pos = self.addrs.push(addr) - 1;
-              console.writeLine('[' + pos + '] ' + addr + ' | ' + (balance / 10**18));
+              console.writeLine('[' + pos + '] ' + addr + ' | ' + ethers.utils.formatUnits(balance, 'ether'));
             }
           );
         }
@@ -98,30 +100,36 @@ class FundBountyCommand {
     let arbiter = '0x0000000000000000000000000000000000000000';
     let paysTokens = false;
     let tokenAddress = this.schema.tokenAddress;
-    let ethAmount = this.amount;
+    let ethAmount = ethers.utils.parseEther(this.amount.toString());
     let account = this.schema.issuerAddress;
 
-    const contract = StandardBountyContract.getContract(console.web3Wallet, console.network);
-    let c = contract.methods.issueAndActivateBounty(
+    const signer = this.console.web3Wallet.getSigner();
+    const contract = StandardBountyContract.getContract(this.console.network).connect(signer);
+
+    this.done = true;
+
+    contract.issueAndActivateBounty(
       account,
       this.schema.expireDate,
       ipfsHash,
-      this.amount,
+      ethAmount,
       arbiter,
       paysTokens,
       tokenAddress,
-      this.amount
-    );
-
-    c.send(
+      ethAmount,
       {
-        'from': account,
+        // 'from': account,
         'value': ethAmount,
-        'gas': 318730
+        'gasLimit': 318730
       }
     ).then(
-      function(res) {
-        console.log(res);
+      function(tx) {
+        console.log(tx);
+        tx.wait().then(
+          function(res) {
+            console.log(res);
+          }
+        );
       }
     ).catch(
       function(res) {
@@ -131,6 +139,10 @@ class FundBountyCommand {
   }
 
   onInput(str, console) {
+    if (this.done) {
+      return;
+    }
+
     if (!this.currentField) {
       if (!this.schema.issuerAddress) {
         let addrChoice = parseInt(str);
@@ -174,7 +186,7 @@ class FundBountyCommand {
         return true;
       }
 
-      console.writeLine('funding aborted');
+      console.writeLine('aborted');
       return false;
     }
 
@@ -186,6 +198,7 @@ class FundBountyCommand {
   }
 }
 FundBountyCommand.DESCRIPTION = 'fund a new Issue';
+this.FundBountyCommand = FundBountyCommand;
 
 
 class CancelBountyCommand {
@@ -209,18 +222,26 @@ class CancelBountyCommand {
     }
 
     const self = this;
-    const contract = StandardBountyContract.getContract(this.console.web3Wallet, this.console.network);
-    let c = contract.methods.killBounty(bountyModel.id);
+    const signer = this.console.web3Wallet.getSigner();
+    const contract = StandardBountyContract.getContract(this.console.network).connect(signer);
 
-    c.send(
+    this.console.log('***This must be signed from: ' + bountyModel.issuerAddress + '***');
+
+    contract.killBounty(
+      bountyModel.id,
       {
-        'from': bountyModel.issuerAddress,
+        // 'from': bountyModel.issuerAddress,
         'value': 0,
-        'gas': 318730
+        'gasLimit': 318730
       }
     ).then(
-      function(res) {
-        self.console.log(res);
+      function(tx) {
+        self.console.log(tx);
+        tx.wait().then(
+          function(res) {
+            self.console.log(res);
+          }
+        );
       }
     ).catch(
       function(res) {
@@ -230,6 +251,7 @@ class CancelBountyCommand {
   }
 }
 CancelBountyCommand.DESCRIPTION = '<bounty number>\n\tcancel a bounty';
+this.CancelBountyCommand = CancelBountyCommand;
 
 
 class PayoutBountyCommand {
@@ -269,21 +291,29 @@ class PayoutBountyCommand {
 
   payout(id) {
     this.console.log('Payout Fulfillment ' + id + ' for Bounty ' + this.bountyId);
+    this.console.log('***This must be signed from: ' + this.issuerAddress + '***');
 
     const self = this;
-    const contract = StandardBountyContract.getContract(this.console.web3Wallet, this.console.network);
+    const signer = this.console.web3Wallet.getSigner();
+    const contract = StandardBountyContract.getContract(this.console.network).connect(signer);
 
-    let c = contract.methods.acceptFulfillment(this.bountyId, id);
-
-    c.send(
+    contract.acceptFulfillment(
+      this.bountyId,
+      id,
       {
-        'from': this.issuerAddress,
+        // 'from': this.issuerAddress,
         'value': 0,
-        'gas': 318730
+        'gasLimit': 318730
       }
     ).then(
-      function(res) {
-        self.console.log(res);
+      function(tx) {
+        self.console.log(tx);
+
+        tx.wait().then(
+          function(res) {
+            self.console.log(res);
+          }
+        );
       }
     ).catch(
       function(res) {
@@ -293,6 +323,7 @@ class PayoutBountyCommand {
   }
 }
 PayoutBountyCommand.DESCRIPTION = '<bounty number> <fulfillment id(optional)>\n\tpayout a bounty';
+this.PayoutBountyCommand = PayoutBountyCommand;
 
 
 class FulfillBountyCommand {
@@ -323,7 +354,7 @@ class FulfillBountyCommand {
 
     const self = this;
 
-    console.web3Wallet.eth.getAccounts().then(
+    console.web3Wallet.listAccounts().then(
       function(res) {
         if (!res || !res.length) {
           console.writeLine('No accounts. Did you unlock your wallet?\nHit Enter to try again.');
@@ -332,10 +363,10 @@ class FulfillBountyCommand {
 
         while (res.length) {
           let addr = res.pop();
-          console.web3Wallet.eth.getBalance(addr).then(
+          console.web3Wallet.getBalance(addr).then(
             function(balance) {
               let pos = self.addrs.push(addr) - 1;
-              console.writeLine('[' + pos + '] ' + addr + ' | ' + (balance / 10**18));
+              console.writeLine('[' + pos + '] ' + addr + ' | ' + ethers.utils.formatUnits(balance, 'ether'));
             }
           );
         }
@@ -369,23 +400,33 @@ class FulfillBountyCommand {
     }
 
     this.console.log(res);
+    this.console.writeLine('signing...');
 
     let ipfsHash = res['Hash'];
     let account = this.schema.fulfillerAddress;
 
-    const contract = StandardBountyContract.getContract(this.console.web3Wallet, this.console.network);
-    let c = contract.methods.fulfillBounty(this.bountyModel.id, ipfsHash);
+    const signer = this.console.web3Wallet.getSigner();
+    const contract = StandardBountyContract.getContract(this.console.network).connect(signer);
     const self = this;
 
-    c.send(
+    this.done = true;
+
+    contract.fulfillBounty(
+      this.bountyModel.id,
+      ipfsHash,
       {
-        'from': account,
+        // 'from': account,
         'value': 0,
-        'gas': 318730
+        'gasLimit': 318730
       }
     ).then(
-      function(res) {
-        self.console.log(res);
+      function(tx) {
+        self.console.log(tx);
+        tx.wait().then(
+          function(res) {
+            self.console.log(res);
+          }
+        );
       }
     ).catch(
       function(res) {
@@ -395,6 +436,10 @@ class FulfillBountyCommand {
   }
 
   onInput(str, console) {
+    if (this.done) {
+      return false;
+    }
+
     if (!this.currentField) {
       if (!this.schema.fulfillerAddress) {
         let addrChoice = parseInt(str);
@@ -422,7 +467,7 @@ class FulfillBountyCommand {
         return true;
       }
 
-      console.writeLine('funding aborted');
+      console.writeLine('aborted');
       return false;
     }
 
@@ -434,3 +479,4 @@ class FulfillBountyCommand {
   }
 }
 FulfillBountyCommand.DESCRIPTION = '<bounty number>\n\tfulfill a bounty';
+this.FulfillBountyCommand = FulfillBountyCommand;

@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+const crypto = require('crypto');
+
+global.crypto = {
+  getRandomValues: function (buffer) {
+    return crypto.randomFillSync(buffer);
+  },
+};
+
+function _import(path) {
+  let x = require(path);
+
+  for (var k in x) {
+    global[k] = x[k];
+  }
+}
+
+_import('./../src/EthereumProviderBridge.js');
+
+global.window = {
+  setTimeout: setTimeout,
+  ethereum: new EthereumProviderBridge(),
+};
+
+_import('./../src/Scheduler.js');
+_import('./../src/NativeLocalStorage.js');
+_import('./../src/HTTPRequest.js');
+_import('./../src/Github.js');
+_import('./../src/Ipfs.js');
+_import('./../src/StandardBountyContract.js');
+_import('./../src/Schema.js');
+_import('./../src/BountyModel.js');
+_import('./../src/Tokens.js');
+_import('./../src/NativeConsole.js');
+_import('./../src/BountyCommands.js');
+_import('./../src/ConsoleCommands.js');
+_import('./../src/GitcoinConsole.js');
+
+global.ethers = require('./../src/thirdParty/ethers.min.js');
+
+new GitcoinConsole();

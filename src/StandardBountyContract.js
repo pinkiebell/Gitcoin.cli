@@ -1,6 +1,14 @@
 
 class StandardBountyContract {
   static getWeb3ForNetwork(network) {
+    let provider = this._PROVIDERS[network];
+    if (!provider) {
+      provider = ethers.getDefaultProvider(network);
+      this._PROVIDERS[network] = provider;
+    }
+
+    return provider;
+    /*
     const web3Pool = this.web3Pool || new Web3ConnectionPool();
 
     if (!this.web3Pool) {
@@ -8,6 +16,7 @@ class StandardBountyContract {
     }
 
     return web3Pool.instanceForNetwork(network);
+    */
   }
 
   static getAddress(network) {
@@ -19,31 +28,23 @@ class StandardBountyContract {
     }
   }
 
-  static getContract(web3, network) {
-    if (!web3) {
-      web3 = this.getWeb3ForNetwork(network);
-    }
-
+  static getContract(network) {
     let ret = this._INST[network];
 
-    if (!web3 && ret) {
+    if (ret) {
       return ret;
     }
 
-    if (!web3) {
-      return null;
-    }
-
-    ret = new web3.eth.Contract(this.ABI, this.getAddress(network || web3.network));
+    ret = new ethers.Contract(this.getAddress(network), this.ABI, this.getWeb3ForNetwork(network));
     this._INST[network] = ret;
 
     return ret;
   }
 
   static getNumBounties(network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getNumBounties().call().then(
+    contract.getNumBounties().then(
       function(res) {
         callback.call(scope, parseInt(res));
       }
@@ -55,9 +56,9 @@ class StandardBountyContract {
   }
 
   static getBounty(id, network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getBounty(id).call().then(
+    contract.bounties(id).then(
       function(res) {
         callback.call(scope, res);
       }
@@ -69,9 +70,9 @@ class StandardBountyContract {
   }
 
   static getBountyData(id, network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getBountyData(id).call().then(
+    contract.getBountyData(id).then(
       function(res){
         callback.call(scope, res);
       }
@@ -83,9 +84,9 @@ class StandardBountyContract {
   }
 
   static getBountyToken(id, network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getBountyToken(id).call().then(
+    contract.getBountyToken(id).then(
       function(res){
         callback.call(scope, res);
       }
@@ -97,9 +98,9 @@ class StandardBountyContract {
   }
 
   static getBountyArbiter(id, network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getBountyArbiter(id).call().then(
+    contract.getBountyArbiter(id).then(
       function(res){
         callback.call(scope, res);
       }
@@ -111,9 +112,9 @@ class StandardBountyContract {
   }
 
   static getNumFulfillments(id, network, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getNumFulfillments(id).call().then(
+    contract.getNumFulfillments(id).then(
       function(res){
         callback.call(scope, parseInt(res));
       }
@@ -125,9 +126,9 @@ class StandardBountyContract {
   }
 
   static getFulfillment(id, network, fid, callback, scope) {
-    const contract = this.getContract(null, network);
+    const contract = this.getContract(network);
 
-    contract.methods.getFulfillment(id, fid).call().then(
+    contract.getFulfillment(id, fid).then(
       function(res){
         callback.call(scope, res, fid);
       }
@@ -138,5 +139,7 @@ class StandardBountyContract {
     );
   }
 }
+StandardBountyContract._PROVIDERS = {};
 StandardBountyContract._INST = {};
 StandardBountyContract.ABI = JSON.parse('[{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"killBounty","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"getBountyToken","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_data","type":"string"}],"name":"fulfillBounty","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newDeadline","type":"uint256"}],"name":"extendDeadline","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getNumBounties","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_fulfillmentId","type":"uint256"},{"name":"_data","type":"string"}],"name":"updateFulfillment","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newFulfillmentAmount","type":"uint256"},{"name":"_value","type":"uint256"}],"name":"increasePayout","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newFulfillmentAmount","type":"uint256"}],"name":"changeBountyFulfillmentAmount","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newIssuer","type":"address"}],"name":"transferIssuer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_value","type":"uint256"}],"name":"activateBounty","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_issuer","type":"address"},{"name":"_deadline","type":"uint256"},{"name":"_data","type":"string"},{"name":"_fulfillmentAmount","type":"uint256"},{"name":"_arbiter","type":"address"},{"name":"_paysTokens","type":"bool"},{"name":"_tokenContract","type":"address"}],"name":"issueBounty","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_issuer","type":"address"},{"name":"_deadline","type":"uint256"},{"name":"_data","type":"string"},{"name":"_fulfillmentAmount","type":"uint256"},{"name":"_arbiter","type":"address"},{"name":"_paysTokens","type":"bool"},{"name":"_tokenContract","type":"address"},{"name":"_value","type":"uint256"}],"name":"issueAndActivateBounty","outputs":[{"name":"","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"getBountyArbiter","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_value","type":"uint256"}],"name":"contribute","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"getBountyData","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_fulfillmentId","type":"uint256"}],"name":"getFulfillment","outputs":[{"name":"","type":"bool"},{"name":"","type":"address"},{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newArbiter","type":"address"}],"name":"changeBountyArbiter","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newDeadline","type":"uint256"}],"name":"changeBountyDeadline","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_fulfillmentId","type":"uint256"}],"name":"acceptFulfillment","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"bounties","outputs":[{"name":"issuer","type":"address"},{"name":"deadline","type":"uint256"},{"name":"data","type":"string"},{"name":"fulfillmentAmount","type":"uint256"},{"name":"arbiter","type":"address"},{"name":"paysTokens","type":"bool"},{"name":"bountyStage","type":"uint8"},{"name":"balance","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"getBounty","outputs":[{"name":"","type":"address"},{"name":"","type":"uint256"},{"name":"","type":"uint256"},{"name":"","type":"bool"},{"name":"","type":"uint256"},{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_bountyId","type":"uint256"},{"name":"_newData","type":"string"}],"name":"changeBountyData","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_bountyId","type":"uint256"}],"name":"getNumFulfillments","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_owner","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"}],"name":"BountyIssued","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":false,"name":"issuer","type":"address"}],"name":"BountyActivated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":true,"name":"fulfiller","type":"address"},{"indexed":true,"name":"_fulfillmentId","type":"uint256"}],"name":"BountyFulfilled","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_bountyId","type":"uint256"},{"indexed":false,"name":"_fulfillmentId","type":"uint256"}],"name":"FulfillmentUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":true,"name":"fulfiller","type":"address"},{"indexed":true,"name":"_fulfillmentId","type":"uint256"}],"name":"FulfillmentAccepted","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":true,"name":"issuer","type":"address"}],"name":"BountyKilled","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":true,"name":"contributor","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"ContributionAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"},{"indexed":false,"name":"newDeadline","type":"uint256"}],"name":"DeadlineExtended","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"bountyId","type":"uint256"}],"name":"BountyChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_bountyId","type":"uint256"},{"indexed":true,"name":"_newIssuer","type":"address"}],"name":"IssuerTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_bountyId","type":"uint256"},{"indexed":false,"name":"_newFulfillmentAmount","type":"uint256"}],"name":"PayoutIncreased","type":"event"}]');
+this.StandardBountyContract = StandardBountyContract;

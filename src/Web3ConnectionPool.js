@@ -49,3 +49,4 @@ class Web3ConnectionPool {
     return connections[this.ctr++ % connections.length];
   }
 }
+this.Web3ConnectionPool = Web3ConnectionPool;

@@ -30,54 +30,79 @@ class Ipfs {
     setTimeout(function() {
       if (timedOut === undefined) {
         timedOut = true;
-        console.log('timedOut ' + link);
+        // console.log('timedOut ' + link);
         callback.call(scope, null);
       }
     }, 5000);
 
-    fetch('https://ipfs.infura.io:5001/api/v0/cat/' + link).then(
-      function(response) {
-        if (timedOut) {
-          return;
-        }
-        timedOut = false;
-        response.json().then(function(blob) {
-          callback.call(scope, blob);
-        }).catch(
-          function() {
-            callback.call(scope, null);
-          }
-        );
+    const req = new XMLHttpRequest();
+    req.open('GET', 'https://ipfs.infura.io:5001/api/v0/cat/' + link);
+    req.onreadystatechange = function() {
+      if (req.readyState !== 4) {
+        return;
       }
-    ).catch(
-      function() {
-        if (timedOut) {
-          return;
-        }
-        timedOut = false;
-        callback.call(scope, null);
+
+      if (timedOut) {
+        return;
       }
-    );
+      timedOut = false;
+
+      let obj;
+
+      try {
+        obj = JSON.parse(req.responseText);
+      } catch (e) {
+      }
+
+      callback.call(scope, obj);
+    };
+
+    req.onerror = function() {
+      if (timedOut) {
+        return;
+      }
+      timedOut = false;
+      callback.call(scope, null);
+    };
+    req.send();
   }
 
   static push(payload, callback, scope) {
-    const formData = new FormData();
+    const boundary = '----0000000000000000000000000000000000';
+    const req = new XMLHttpRequest();
 
-    formData.append('file', payload);
-
-    const opts = { 'method': 'POST', 'body': formData };
-
-    fetch('https://ipfs.infura.io:5001/api/v0/add?pin=true', opts).then(
-      function(response) {
-        response.json().then(function(blob) {
-          callback.call(scope, blob);
-        });
+    req.open('POST', 'https://ipfs.infura.io:5001/api/v0/add?pin=true');
+    req.setRequestHeader('Content-Type', 'multipart/form-data; boundary=' + boundary);
+    req.onreadystatechange = function() {
+      if (req.readyState !== 4) {
+        return;
       }
-    ).catch(
-      function() {
-        callback.call(scope, null);
+
+      if (req.responseText) {
+        let obj;
+
+        try {
+          obj = JSON.parse(req.responseText);
+        } catch (e) {
+        }
+
+        callback.call(scope, obj);
+        return;
       }
-    );
+
+      callback.call(scope, null);
+    };
+
+    const data =
+      '--' +
+      boundary +
+      '\r\nContent-Disposition: form-data; name="file"\r\n\r\n' +
+      payload +
+      '\r\n--' +
+      boundary +
+      '--\r\n';
+    req.send(data);
   }
 }
 Ipfs._queue = [];
+this.Ipfs = Ipfs;

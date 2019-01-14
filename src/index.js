@@ -1,5 +1,5 @@
 
-require('thirdParty/web3.js/dist/web3.min.js');
+require('thirdParty/ethers.min.js');
 
 require('Scheduler.js');
 require('LocalStorage.js');
@@ -7,7 +7,6 @@ require('BasicElement.js');
 
 require('Github.js');
 require('Ipfs.js');
-require('Web3ConnectionPool.js');
 require('StandardBountyContract.js');
 require('Schema.js');
 require('BountyModel.js');

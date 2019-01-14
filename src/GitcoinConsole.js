@@ -3,16 +3,16 @@ class GitcoinConsole extends Console {
   constructor(root) {
     super(root);
 
-    this.web3Wallet = new Web3();
-
-    const self = this;
-
     if (window.ethereum) {
       this.walletProvider = window.ethereum;
       window.ethereum.enable();
     } else if (typeof web3 !== 'undefined') {
       this.walletProvider = web3.currentProvider;
+    } else {
+      this.walletProvider = ethers.getDefaultProvider('rinkeby');
     }
+
+    this.web3Wallet = new ethers.providers.Web3Provider(this.walletProvider);
 
     LocalStorage.lookup('env', this.onLookupSettings, this);
     Scheduler.dispatch(this.fetchBlockInfo, 1000, [this]);
@@ -27,8 +27,8 @@ class GitcoinConsole extends Console {
 
     const self = this;
 
-    StandardBountyContract.getWeb3ForNetwork(this.env.network).eth.getBlockNumber(
-      function(err, res) {
+    StandardBountyContract.getWeb3ForNetwork(this.env.network).getBlockNumber().then(
+      function(res) {
         self.maybeSync(res);
       }
     );
@@ -60,7 +60,7 @@ class GitcoinConsole extends Console {
 
   syncNextBounty() {
     if (this.bountyNum > 0) {
-      Scheduler.dispatch(this.syncNextBounty, 100, [this]);
+      Scheduler.dispatch(this.syncNextBounty, 500, [this]);
 
       let model = BountyModel.load(--this.bountyNum, this.network);
       model.updateBountyData(this.env.blockHeight);
@@ -87,7 +87,7 @@ class GitcoinConsole extends Console {
       this.env.blockHeight = 0;
     }
 
-    this.web3Wallet.setProvider(this.walletProvider);
+    this.web3Wallet = new ethers.providers.Web3Provider(this.walletProvider);
     this.env.network = val;
     this.saveEnv();
   }
@@ -127,7 +127,7 @@ class GitcoinConsole extends Console {
     this.write('Enter \'help\' for robot assistance.\n');
     this.write('Setup a Github token (env githubToken=TOKEN)\n');
 
-    if (this.env.canSpeak === undefined) {
+    if (this.env.canSpeak === undefined && window.speak) {
       this.env.canSpeak = true;
       this.dispatchCommand('tts', []);
     }
@@ -147,3 +147,4 @@ class GitcoinConsole extends Console {
     }
   }
 }
+this.GitcoinConsole = GitcoinConsole;

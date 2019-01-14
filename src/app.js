@@ -1,5 +1,5 @@
 
-function speak(text, callback) {
+window.speak = function(text, callback) {
   var u = new SpeechSynthesisUtterance();
   u.text = text;
   u.lang = 'en-US';

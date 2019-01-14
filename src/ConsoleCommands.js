@@ -19,7 +19,7 @@ class StatusCommand {
     this.console = console;
 
     StandardBountyContract.getNumBounties(console.network, this.onGetNumBounties, this);
-    console.writeLine('Web3 version: ' + Web3.version);
+    console.writeLine('Ethers version: ' + ethers.version);
     console.writeLine('Sync in progress: ' + (console.bountyNum > 0));
   }
 
@@ -323,19 +323,19 @@ class WalletCommand {
       return;
     }
 
-    console.web3Wallet.eth.net.getNetworkType().then(
+    console.web3Wallet.getNetwork().then(
       function(res) {
-        console.writeLine('wallet network: ' + res);
+        console.writeLine('wallet network: ' + res.name);
       }
     );
 
-    console.web3Wallet.eth.getAccounts().then(
+    console.web3Wallet.listAccounts().then(
       function(res) {
         while (res.length) {
           let addr = res.pop();
-          console.web3Wallet.eth.getBalance(addr).then(
+          console.web3Wallet.getBalance(addr).then(
             function(balance) {
-              console.writeLine(addr + ' / ' + (balance / 10**18));
+              console.writeLine(addr + ' / ' + ethers.utils.formatUnits(balance, 'ether'));
             }
           );
         }
@@ -369,6 +369,10 @@ EnvironmentCommand.DESCRIPTION = 'Maybe has something to do with settings.';
 
 class TextToSpeechCommand {
   constructor(cmd, args, console) {
+    if (!window.speak) {
+      return;
+    }
+
     const cond = console.env.canSpeak ? 'disable' : 'enable';
 
     console.write(
@@ -493,6 +497,13 @@ class FunderCommand {
 }
 FunderCommand.DESCRIPTION = '<addr>\n\tsearch for bounties funded by this address';
 
+class SyncCommand {
+  constructor(cmd, args, console) {
+    console.startSync();
+  }
+}
+SyncCommand.DESCRIPTION = '\n\tforce sync';
+
 const ConsoleCommands =
   {
     'status': StatusCommand,
@@ -515,5 +526,7 @@ const ConsoleCommands =
     'eval': EvalCommand,
     'dangling': DanglingCommand,
     'funder': FunderCommand,
+    'sync': SyncCommand,
     'help': HelpCommand
   };
+this.ConsoleCommands = ConsoleCommands;

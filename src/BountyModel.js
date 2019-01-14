@@ -120,27 +120,31 @@ class BountyModel {
 
     if (!this.bountyStage) {
       StandardBountyContract.getBountyToken(this.id, this.network, this.onGetBountyToken, this);
-      StandardBountyContract.getBountyArbiter(this.id, this.network, this.onGetBountyArbiter, this);
     }
 
-    if (!this.bountyStage || !this.ipfsBlob) {
-      this.fetchBountyIpfs();
-    }
     StandardBountyContract.getNumFulfillments(this.id, this.network, this.onGetNumFulfillments, this);
     StandardBountyContract.getBounty(this.id, this.network, this.onGetBounty, this);
   }
 
   onGetBounty(res) {
     if (res) {
-      this.issuer = res[0];
-      this.deadline = res[1];
-      this.fulfillmentAmount = res[2];
-      this.paysTokens = res[3];
-      this.bountyStage = parseInt(res[4]);
-      this.balance = res[5];
+      this.issuer = res.issuer;
+      this.arbiter = res.arbiter;
+      this.deadline = res.deadline.toString();
+      this.fulfillmentAmount = res.fulfillmentAmount.toString();
+      this.paysTokens = res.paysTokens;
+      this.bountyStage = res.bountyStage;
+      this.balance = res.balance.toString();
+      this.data = res.data;
 
       this.save();
     }
+
+    if (this.data && this.ipfsBlob) {
+      return;
+    }
+
+    Ipfs.pull(this.data, this.onFetchBountyIpfs, this);
   }
 
   onGetBountyToken(res) {
@@ -150,40 +154,11 @@ class BountyModel {
     }
   }
 
-  onGetBountyArbiter(res) {
-    if (res) {
-      this.arbiter = res;
-      this.save();
-    }
-  }
-
   onGetNumFulfillments(res) {
     if (~~res === res) {
       while (res) {
         this.fetchFulfillment(--res, this.blockNumber);
       }
-    }
-  }
-
-  fetchBountyIpfs(blockNumber) {
-    if (!this._fullyLoaded) {
-      Scheduler.dispatch(this.fetchBountyIpfs, 10, [this, blockNumber]);
-      return;
-    }
-
-    StandardBountyContract.getBountyData(this.id, this.network, this.onGetBountyData, this);
-  }
-
-  onGetBountyData(res) {
-    if (res) {
-      if (this.data === res && this.ipfsBlob) {
-        return;
-      }
-
-      this.data = res;
-      this.save();
-
-      Ipfs.pull(this.data, this.onFetchBountyIpfs, this);
     }
   }
 
@@ -219,6 +194,10 @@ class BountyModel {
   }
 
   onFetchFulfillment(res, fid) {
+    if (!res) {
+      return;
+    }
+
     let scope = this.fulfillments[fid];
     let pullBlob = !scope.ipfsBlob || scope.data !== res[2];
 
@@ -359,11 +338,12 @@ class BountyModel {
   }
 
   get tokenValue() {
-    return Web3.utils.fromWei(this.fulfillmentAmount || '0');
+    // TODO: decimal places
+    return ethers.utils.formatUnits(this.fulfillmentAmount || '0', 'ether');
   }
 
   get balanceValue() {
-    return Web3.utils.fromWei(this.balance || '0');
+    return ethers.utils.formatUnits(this.balance || '0', 'ether');
   }
 
   get tokenName() {
@@ -487,3 +467,4 @@ class BountyModel {
   }
 }
 BountyModel._CACHE = {};
+this.BountyModel = BountyModel;

@@ -16,6 +16,7 @@ class PersonaSchema {
     this['address'] = '';
   }
 }
+this.MetaSchema = MetaSchema;
 
 class BountySchema {
   constructor() {
@@ -97,6 +98,7 @@ class BountySchema {
     this['payload']['expire_date'] = val;
   }
 }
+this.BountySchema = BountySchema;
 
 class FulfillmentSchema {
   constructor() {
@@ -133,3 +135,4 @@ class FulfillmentSchema {
     this['payload']['fulfiller']['address'] = val;
   }
 }
+this.FulfillmentSchema = FulfillmentSchema;

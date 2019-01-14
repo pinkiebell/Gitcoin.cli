@@ -1,0 +1,22 @@
+{
+  "name": "gitcoin.cli",
+  "version": "0.1.0",
+  "description": "A (web)app command line interface to interact with the Standard Bounties Contract and especially the Gitcoin platform.",
+  "main": "bin/gitcoin.cli",
+  "bin": {
+    "gitcoin.cli": "bin/gitcoin.cli"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pinkiebell/Gitcoin.cli.git"
+  },
+  "author": "pinkiebell",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/pinkiebell/Gitcoin.cli/issues"
+  },
+  "homepage": "https://github.com/pinkiebell/Gitcoin.cli#readme"
+}
