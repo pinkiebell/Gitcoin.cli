@@ -20,6 +20,8 @@ _import('./../src/EthereumProviderBridge.js');
 
 global.window = {
   setTimeout: setTimeout,
+  // maybe spawn the default browser ?
+  open: function() {},
   ethereum: new EthereumProviderBridge(),
 };
 
