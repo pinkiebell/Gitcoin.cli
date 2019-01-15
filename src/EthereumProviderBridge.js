@@ -8,7 +8,6 @@ class EthereumProviderBridge {
   constructor() {
     this._queue = [];
     this._callbacks = {};
-    //this.isMetaMask = true;
 
     var server = new http.Server(this._onRequest.bind(this));
     server.listen(54321, '127.0.0.1', function(a, b) {
@@ -33,13 +32,15 @@ class EthereumProviderBridge {
     if (path === '/post') {
       const self = this;
 
+      let body = Buffer.alloc(0);
       function check() {
         if (!req.complete) {
+          body = Buffer.concat([body, req.read()]);
           setTimeout(check, 10);
           return;
         }
 
-        let ob = req.read();
+        let ob = Buffer.concat([body, req.read()]);
         res.end();
 
         self._handleMessage(JSON.parse(ob));

@@ -338,12 +338,24 @@ class BountyModel {
   }
 
   get tokenValue() {
-    // TODO: decimal places
-    return ethers.utils.formatUnits(this.fulfillmentAmount || '0', 'ether');
+    let decimals = 18;
+    let token = (Tokens[this.network] || {})[this.token];
+
+    if (token) {
+      decimals = token['dec'];
+    }
+    return ethers.utils.formatUnits(this.fulfillmentAmount || '0', decimals);
   }
 
   get balanceValue() {
-    return ethers.utils.formatUnits(this.balance || '0', 'ether');
+    let decimals = 18;
+    let token = (Tokens[this.network] || {})[this.token];
+
+    if (token) {
+      decimals = token['dec'];
+    }
+
+    return ethers.utils.formatUnits(this.balance || '0', decimals);
   }
 
   get tokenName() {

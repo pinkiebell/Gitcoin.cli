@@ -83,7 +83,7 @@ class FundBountyCommand {
     this.ready = true;
 
     console.log(this.schema);
-    console.writeLine('Amount: ' + this.amount + ' ETH');
+    console.writeLine('Amount: ' + this.amount + ' ' + this.token.sym);
     console.log('Proceed? Enter Yes or No');
   }
 
@@ -98,10 +98,18 @@ class FundBountyCommand {
 
     let ipfsHash = res['Hash'];
     let arbiter = '0x0000000000000000000000000000000000000000';
-    let paysTokens = false;
-    let tokenAddress = this.schema.tokenAddress;
-    let ethAmount = ethers.utils.parseEther(this.amount.toString());
+    let paysTokens = true;
     let account = this.schema.issuerAddress;
+    let tokenAddress = this.schema.tokenAddress;
+    let tokenAmount = ethers.utils.parseUnits(this.amount.toString(), this.token.decimals);
+    let ethAmount = '0x00';
+
+    if (tokenAddress === '0x0000000000000000000000000000000000000000') {
+      ethAmount = tokenAmount;
+      paysTokens = false;
+    }
+
+    console.writeLine('Creating Transaction...');
 
     const signer = this.console.web3Wallet.getSigner();
     const contract = StandardBountyContract.getContract(this.console.network).connect(signer);
@@ -112,11 +120,11 @@ class FundBountyCommand {
       account,
       this.schema.expireDate,
       ipfsHash,
-      ethAmount,
+      tokenAmount,
       arbiter,
       paysTokens,
       tokenAddress,
-      ethAmount,
+      tokenAmount,
       {
         // 'from': account,
         'value': ethAmount,
@@ -161,10 +169,24 @@ class FundBountyCommand {
         return true;
       }
 
+      if (!this.token) {
+        let token = Tokens.getBySymbol(str, console.env.network);
+
+        if (!token) {
+          console.writeLine('Supported Tokens for ' + console.env.network);
+          console.writeLine(Tokens.getSymbolsByNetwork(console.env.network).join(', '));
+          return true;
+        }
+
+        this.token = token;
+        this.schema.tokenAddress = this.token.address;
+        this.schema.tokenName = this.token.sym;
+      }
+
       if (!this.amount) {
         let amount = parseFloat(str);
         if (!amount) {
-          console.writeLine('Enter the funding amount in ETH');
+          console.writeLine('Enter the funding amount in ' + this.token.sym);
           return true;
         }
 
