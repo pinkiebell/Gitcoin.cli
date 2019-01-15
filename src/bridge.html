@@ -3,11 +3,20 @@
   <head>
     <meta charset='utf-8'>
     <script type='text/javascript'>
-      if (!window.ethereum) {
+      let provider;
+
+      if (window.ethereum) {
+        provider = window.ethereum;
+      } else if (typeof web3 !== 'undefined') {
+        provider = web3.currentProvider;
+      } else {
         document.write('No Ethereum provider detected');
       }
 
-      window.ethereum.enable();
+      if (provider && provider.enable) {
+        provider.enable();
+      }
+
       setInterval(
         function() {
           fetch('/get').then(
@@ -15,7 +24,7 @@
               response.json().then(
                 function(obj) {
                   if (obj.method) {
-                    window.ethereum.sendAsync(obj,
+                    provider.send(obj,
                       function(err, res) {
                         console.log(err, res);
                         if (res) {
